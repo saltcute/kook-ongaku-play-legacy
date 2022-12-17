@@ -1,5 +1,5 @@
 import { bot } from 'init/client';
-import { echoMenu } from './commands/echo/echo.menu';
+import { echoMenu } from './commands/play/play.menu';
 
 bot.messageSource.on('message', (e) => {
     bot.logger.debug(`received:`, e);
