@@ -1,7 +1,7 @@
 // @ts-nocheck
 import "puppeteer-stream";
-import { launch, Browser, Page } from "puppeteer";
-import { getStream } from "puppeteer-stream";
+import puppeteer, { Browser, Page } from "puppeteer";
+import { getStream } from 'puppeteer-stream';
 import { EventEmitter } from "events";
 import fs from "fs";
 import { execSync } from "child_process";
@@ -47,7 +47,7 @@ export class SpotifyPlaybackSDK {
 		if (!executablePath)
 			throw "Please install chrome to use the SpotifyPlayback SDK: https://www.google.com/chrome/";
 
-		this.browser = await launch({ executablePath });
+		this.browser = await puppeteer.launch({ executablePath });
 		return this;
 	}
 

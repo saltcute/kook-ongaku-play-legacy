@@ -1,5 +1,5 @@
 import { Card, MenuCommand } from 'kbotify';
-import { echoKmd } from './play.test';
+import { echoKmd } from './play.test.app';
 
 class EchoMenu extends MenuCommand {
     code = 'play';
