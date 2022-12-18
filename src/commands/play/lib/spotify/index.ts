@@ -1,7 +1,6 @@
 // @ts-nocheck
 import "puppeteer-stream";
 import puppeteer, { Browser, Page } from "puppeteer";
-import { launch, getStream } from 'puppeteer-stream';
 import { EventEmitter } from "events";
 import fs from "fs";
 import { execSync } from "child_process";
@@ -20,7 +19,6 @@ export function getChromePath() {
 	return (
 		check("C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe") ||
 		check("C:\\Program Files (x86)\\Google\\Application\\chrome.exe") ||
-		check("C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe") ||
 		check("%AppData%\\Local\\Google\\Chrome\\Application\\chome.exe") ||
 		check("C:\\Users\\UserName\\AppDataLocal\\Google\\Chrome") ||
 		check("C:\\Documents and Settings\\UserName\\Local Settings\\Application Data\\Google\\Chrome") ||
@@ -35,8 +33,7 @@ export type PlayerOptions = {
 	volume?: number;
 	getOAuthToken: () => string | Promise<string>;
 };
-// const player = `file://${path.join(__dirname, "player.htm")}`;
-const player = "https://youtube.com";
+const player = `file://${path.join(__dirname, "player.html")}`;
 
 export class SpotifyPlaybackSDK {
 	public browser: Browser;
@@ -49,8 +46,7 @@ export class SpotifyPlaybackSDK {
 		if (!executablePath)
 			throw "Please install chrome to use the SpotifyPlayback SDK: https://www.google.com/chrome/";
 
-		this.browser = await launch({ executablePath });
-		// this.browser = await puppeteer.launch({ executablePath });
+		this.browser = await puppeteer.launch({ executablePath });
 		return this;
 	}
 
@@ -133,8 +129,7 @@ class SpotifyPlayer extends EventEmitter {
 	}
 
 	async getAudio() {
-		return getStream(this.page, { audio: true, video: false, frameSize: 20, mimeType: "audio/webm" });
-		// return this.page.getStream({ audio: true, video: false, frameSize: 20, mimeType: "audio/webm" });
+		return this.page.getStream({ audio: true, video: false, frameSize: 20, mimeType: "audio/webm" });
 	}
 
 	async connect(): Promise<boolean> {
