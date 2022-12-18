@@ -1,6 +1,9 @@
 import auth from 'configs/auth';
 import { AppCommand, AppFunc, BaseSession } from 'kbotify';
 import koice from 'koice';
+import { SpotifyPlaybackSDK } from './lib/spotify'
+import * as fs from 'fs';
+import delay from 'delay';
 
 class EchoKmd extends AppCommand {
     code = 'test'; // 只是用作标记
@@ -10,8 +13,22 @@ class EchoKmd extends AppCommand {
     func: AppFunc<BaseSession> = async (session) => {
         if (!isNaN(parseInt(session.args[0]))) {
             const voice = new koice(auth.khltoken);
-            voice.connectWebSocket(session.args[0]);
-            voice.startStream("/Users/xuanjiap/Music/Private/にっこり調査隊のテーマ.mp3");
+            const spotify = new SpotifyPlaybackSDK();
+            await spotify.init();
+            const player = await spotify.createPlayer({
+                name: "kook-ongaku-play",
+                getOAuthToken: () => {
+                    return 'BQCRj69SR8Pt5GsDlMkgMWrcsgl6ONkcxa9NCbHTCEzD_gdRwl0R6lJLUFQvkhRuckr5VrHBdtCEO-LVZ3akiW3Rt5RuARq7gDCHPJsnez9Ua_jj6yDF4uVaeIAdR0-5s13maJCEFu3I0fyrHxVnT432soZnsATjv5RAo2bhKbyasCjI5jskBqAMfXCRul8m_BSCaZUwTGMrp9Fu5HF2CNhM_oo';
+                }
+            })
+            // await player.connect();
+            // await delay(1000);
+            // console.log(await player.getCurrentState());
+            // voice.connectWebSocket(session.args[0]);
+            // voice.startStream(await player.getAudio());
+            // const stream = fs.createWriteStream('./test.webm');
+            // (await player.getAudio()).pipe(stream);
+
         } else {
             return session.reply("Not a channel Id");
         }
