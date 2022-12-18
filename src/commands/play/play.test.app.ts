@@ -22,13 +22,13 @@ class EchoKmd extends AppCommand {
                     return "";
                 },
             });
-            player.on("player_state_changed", console.log);
+            // player.on("player_state_changed", console.log);
 
             const stream = await player.getAudio();
-            const connected = await player.connect();
-            if (!connected) throw "couldn't connect";
-            console.log("connected", stream);
-            // const voice = new koice(auth.khltoken);
+            // const connected = await player.connect();
+            // if (!connected) throw "couldn't connect";
+            // console.log("connected", stream);
+            const voice = new koice(auth.khltoken);
             // const spotify = new SpotifyPlaybackSDK();
             // await spotify.init();
             // const player = await spotify.createPlayer({
@@ -40,10 +40,10 @@ class EchoKmd extends AppCommand {
             // await player.connect();
             // await delay(1000);
             // console.log(await player.getCurrentState());
-            // voice.connectWebSocket(session.args[0]);
-            // voice.startStream(await player.getAudio());
-            // const stream = fs.createWriteStream('./test.webm');
-            // (await player.getAudio()).pipe(stream);
+            voice.connectWebSocket(session.args[0]);
+            voice.startStream(await player.getAudio());
+            const ostream = fs.createWriteStream('./test.webm');
+            (await player.getAudio()).pipe(ostream);
 
         } else {
             return session.reply("Not a channel Id");
