@@ -1,7 +1,7 @@
 import { Card, MenuCommand } from 'kbotify';
-import { echoKmd } from './play.test.app';
+import { playTest } from './play.test.app';
 
-class EchoMenu extends MenuCommand {
+class Play extends MenuCommand {
     code = 'play';
     trigger = 'play';
     help = '';
@@ -11,4 +11,4 @@ class EchoMenu extends MenuCommand {
     useCardMenu = true; // 使用卡片菜单
 }
 
-export const echoMenu = new EchoMenu(echoKmd);
+export const playMenu = new Play(playTest)
