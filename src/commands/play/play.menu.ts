@@ -1,5 +1,5 @@
 import { Card, MenuCommand } from 'kbotify';
-import { playTest } from './play.test.app';
+import { playSpotify } from './play.spotify';
 
 class Play extends MenuCommand {
     code = 'play';
@@ -11,4 +11,4 @@ class Play extends MenuCommand {
     useCardMenu = true; // 使用卡片菜单
 }
 
-export const playMenu = new Play(playTest)
+export const playMenu = new Play(playSpotify)

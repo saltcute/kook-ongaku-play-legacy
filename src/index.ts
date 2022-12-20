@@ -1,3 +1,4 @@
+import { connectSpotify } from 'commands/play/getSpotify';
 import { bot } from 'init/client';
 import { playMenu } from './commands/play/play.menu';
 
@@ -7,8 +8,13 @@ bot.messageSource.on('message', (e) => {
     //console.log(e);
 });
 
-bot.addCommands(playMenu);
 
-bot.connect();
+(async () => {
+    await connectSpotify();
+    console.log("Starting bot...");
+    bot.addCommands(playMenu);
+    bot.logger.debug('system init success');
+    bot.connect();
+})()
 
-bot.logger.debug('system init success');
+
