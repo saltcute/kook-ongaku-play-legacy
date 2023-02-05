@@ -2,12 +2,9 @@
 import auth from 'configs/auth';
 import * as spotifyAuth from './authSpotify';
 import koice from 'koice';
-import * as fs from 'fs';
 import axios from 'axios';
 import { SpotifyPlaybackSDK, } from 'spotify-playback-sdk-node'
-import { Readable as ReadableStream, PassThrough } from 'stream'
-import ReadableStreamClone from 'readable-stream-clone';
-import cloneable from 'cloneable-readable';
+import { Readable as ReadableStream } from 'stream'
 import { BaseSession, Card } from 'kbotify';
 import { bot } from 'init/client';
 import delay from 'delay';
@@ -165,7 +162,10 @@ export async function skip(session: BaseSession) {
 }
 
 export async function switchDevice() {
-    return axios.put(`https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, {}, {
+    return axios.put(`https://api.spotify.com/v1/me/player/`, {
+        device_ids: [deviceId],
+        play: true
+    }, {
         headers: {
             'Authorization': `Bearer ${(await spotifyAuth.getToken())}`
         }

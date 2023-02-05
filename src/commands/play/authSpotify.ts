@@ -2,8 +2,9 @@ import crypto from 'crypto';
 import axios from 'axios';
 import delay from 'delay';
 import * as fs from 'fs';
+import open from 'open';
 
-const spotikookURI = "https://connect.lolicon.ac.cn/spotikook";
+const spotikookURI = "http://localhost:8888";
 
 var accessToken = "";
 var expiresIn = -1;
@@ -34,6 +35,7 @@ export async function loginSpotify() {
     if (!clientUUID)
         clientUUID = crypto.randomUUID();
     console.log(`Open ${spotikookURI + "/login?state=" + clientUUID}`);
+    open(spotikookURI + "/login?state=" + clientUUID);
     var gotToken = false;
     while (!gotToken) {
         await delay(500);
