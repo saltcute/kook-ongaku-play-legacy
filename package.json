@@ -4,8 +4,8 @@
   "description": "Starter kit for kBotify bots",
   "main": "src/index.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node --nolazy -r ts-node/register -r tsconfig-paths/register src/index.ts"
+    "start": "node --nolazy -r ts-node/register -r tsconfig-paths/register src/index.ts",
+    "pm2": "pm2 start pm2-windows.js --name='kook-ongaku-play'"
   },
   "repository": {
     "type": "git",
