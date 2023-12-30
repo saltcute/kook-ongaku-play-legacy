@@ -3,9 +3,9 @@ import auth from 'configs/auth';
 import * as spotifyAuth from './authSpotify';
 import koice from 'koice';
 import axios from 'axios';
-import { SpotifyPlaybackSDK, } from 'spotify-playback-sdk-node'
+import { SpotifyPlaybackSDK, } from './lib/spotifyPlaybackSDK'
 import { Readable as ReadableStream } from 'stream'
-import { BaseSession, Card } from 'kbotify';
+import { BaseSession, Card } from 'kasumi.js';
 import { bot } from 'init/client';
 import delay from 'delay';
 var spotify: SpotifyPlaybackSDK;
@@ -89,25 +89,25 @@ export const card_queue = (current: { name: string, artists: string[], progress:
 
 export async function resume(session: BaseSession) {
     if (!player) {
-        return session.replyCard(card_error("kook-ongaku-play did not start"));
+        return session.reply(card_error("kook-ongaku-play did not start"));
     } else {
         await player.resume();
-        return session.replyCard(card_success("Resumed player"))
+        return session.reply(card_success("Resumed player"))
     }
 }
 
 export async function pause(session: BaseSession) {
     if (!player) {
-        return session.replyCard(card_error("kook-ongaku-play did not start"));
+        return session.reply(card_error("kook-ongaku-play did not start"));
     } else {
         await player.pause();
-        return session.replyCard(card_success("Paused player"))
+        return session.reply(card_success("Paused player"))
     }
 }
 
 export async function getQueue(session: BaseSession) {
     if (!player) {
-        return session.replyCard(card_error("kook-ongaku-play did not start"));
+        return session.reply(card_error("kook-ongaku-play did not start"));
     } else {
         await axios.get(
             `https://api.spotify.com/v1/me/player/queue`,
@@ -138,7 +138,7 @@ export async function getQueue(session: BaseSession) {
                 }
             }).then((res) => {
                 now_playing.progress = res.data.progress_ms || 0;
-                return session.replyCard(card_queue(now_playing, next_up))
+                return session.reply(card_queue(now_playing, next_up))
             }).catch((err) => { console.log(err) });
         });
     }
@@ -146,7 +146,7 @@ export async function getQueue(session: BaseSession) {
 
 export async function skip(session: BaseSession) {
     if (!player) {
-        return session.replyCard(card_error("kook-ongaku-play did not start"));
+        return session.reply(card_error("kook-ongaku-play did not start"));
     } else {
         await player.nextTrack();
         await delay(500);
@@ -156,7 +156,7 @@ export async function skip(session: BaseSession) {
             }
         }).then((res) => {
             const music_name = res.data.item.name;
-            return session.replyCard(card_success(`Skipped current song\n---\n**Now playing:**\n${music_name}`));
+            return session.reply(card_success(`Skipped current song\n---\n**Now playing:**\n${music_name}`));
         }).catch((err) => { console.log(err) });
     }
 }
@@ -172,23 +172,31 @@ export async function switchDevice() {
     }).catch(e => console.dir(e, { depth: null }));
 }
 
+export async function getJoinedChannel(guildId: string, authorId: string) {
+    let joinedChannel;
+    for await (const { err, data } of bot.API.channel.user.joinedChannel(guildId, authorId)) {
+        if (err) {
+            throw { err: 'network_failure', msg: '获取频道失败' };
+        }
+        for (const channel of data.items) {
+            joinedChannel = channel;
+            break;
+        }
+        if (joinedChannel) break;
+    }
+    return joinedChannel;
+}
+
 export async function addToQueue(session: BaseSession, song: string) {
     if (!player) {
-        return session.replyCard(card_error("kook-ongaku-play did not start"));
+        return session.reply(card_error("kook-ongaku-play did not start"));
     } else {
         if (!voice || !voice.isServer) {
-            // return session.replyCard(card_error("Send `.play spotify start` first"));
-            const res = await bot.axios({
-                url: '/v3/channel-user/get-joined-channel',
-                params: {
-                    guild_id: session.guildId,
-                    user_id: session.userId
-                }
-            });
-            if (res.data.data.items.length == 0) {
-                return session.replyCard(card_error("You are not in a voice channel"))
-            }
-            await streamSpotifyToChannel(res.data.data.items[0].id);
+            if (!session.guildId) return await session.reply("guild only");
+            // return session.reply(card_error("Send `.play spotify start` first"));
+            const res = await getJoinedChannel(session.guildId, session.authorId);
+            if (!res) return session.reply(card_error("You are not in a voice channel"))
+            await streamSpotifyToChannel(res.id);
         }
         await axios.post(
             `https://api.spotify.com/v1/me/player/queue?device_id=${deviceId}&uri=${song}`,
@@ -207,11 +215,11 @@ export async function addToQueue(session: BaseSession, song: string) {
                 }
             }).then((res) => {
                 const music_name = res.data.item.name;
-                return session.replyCard(card_success(`Added ${music_name} to the end of queue\nSend \`.play spotify queue\` to see the full queue`));
+                return session.reply(card_success(`Added ${music_name} to the end of queue\nSend \`.play spotify queue\` to see the full queue`));
             }).catch((err) => { console.log(err) });
         }).catch((e) => {
             console.log(e.response.data);
-            session.replyCard(card_error("Failed to play song! Did you use the correct Spotify URI? (looks like `spotify:track:1nXsyiTXXGAnkqCF7xDv6S`)\nYou can copy Spotify song URI by holding Alt/Option while copying the song link"));
+            session.reply(card_error("Failed to play song! Did you use the correct Spotify URI? (looks like `spotify:track:1nXsyiTXXGAnkqCF7xDv6S`)\nYou can copy Spotify song URI by holding Alt/Option while copying the song link"));
         })
     }
 }
@@ -219,7 +227,11 @@ export async function addToQueue(session: BaseSession, song: string) {
 export async function connectSpotify() {
     if (!spotify) {
         spotify = new SpotifyPlaybackSDK();
-        await spotify.init();
+        await spotify.init({
+            executablePath: "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
+        }).catch((e) => {
+            bot.logger.error(e);
+        })
     }
     if (!player) {
         await spotifyAuth.loginSpotify();
@@ -241,17 +253,7 @@ export async function connectSpotify() {
             if (!data.paused) {
                 // console.log(data);
                 // return
-                bot.axios({
-                    url: '/v3/game/activity',
-                    method: "POST",
-                    data: {
-                        singer: 'kook-ongaku-play',
-                        music_name: data.track_window.current_track.name,
-                        data_type: 2
-                    }
-                }).catch((e) => {
-                    console.log(e);
-                })
+                bot.API.game.startMusicActivity('kook-ongaku-play', data.track_window.current_track.name);
                 console.log(`Now playing: ${data.track_window.current_track.name}`);
                 console.log(`At quality: ${data.playback_quality}`);
                 console.log("===============");
