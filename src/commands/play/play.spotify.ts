@@ -1,4 +1,3 @@
-import { bot } from 'init/client';
 import { BaseCommand, BaseSession, CommandFunction } from 'kasumi.js';
 
 import * as spotify from './getSpotify';
@@ -7,10 +6,7 @@ import * as spotify from './getSpotify';
 
 
 class PlaySpotify extends BaseCommand {
-    code = 'spotify'; // 只是用作标记
-    trigger = 'spotify'; // 用于触发的文字
-    help = ''; // 帮助文字
-    intro = '';
+    name = "spotify";
 
     func: CommandFunction<BaseSession, any> = async (session) => {
         if (!session.guildId) return await session.reply("guild only");
@@ -18,7 +14,7 @@ class PlaySpotify extends BaseCommand {
             case 'start':
                 const res = await spotify.getJoinedChannel(session.guildId, session.authorId);
                 if (!res) return session.reply(spotify.card_error("You are not in a voice channel"))
-                await spotify.streamSpotifyToChannel(res.id);
+                await spotify.streamSpotifyToChannel(res);
                 break;
             case 'stop':
                 return await spotify.stopStreaming();

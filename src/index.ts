@@ -1,7 +1,7 @@
 import { connectSpotify } from 'commands/play/getSpotify';
 import { bot } from 'init/client';
 import { playMenu } from './commands/play/play.menu';
-require('./spotify_oauth');
+import './spotify_oauth';
 
 
 (async () => {

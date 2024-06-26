@@ -1,7 +1,7 @@
 
 // @ts-nocheck
-import "puppeteer-stream";
-import puppeteer, { Browser, Page } from "puppeteer";
+import { launch, getStream } from "puppeteer-stream";
+import { Browser, defaultArgs, Page } from "puppeteer";
 import { EventEmitter } from "events";
 import fs from "fs";
 import { execSync } from "child_process";
@@ -37,7 +37,7 @@ export type PlayerOptions = {
     volume?: number;
     getOAuthToken: () => string | Promise<string>;
 };
-const player = `file://${path.join(__dirname, "player.html")}`;
+const player = `file://${path.join(__dirname, "player.htm")}`;
 
 export class SpotifyPlaybackSDK {
     public browser!: Browser;
@@ -50,7 +50,15 @@ export class SpotifyPlaybackSDK {
         if (!executablePath)
             throw "Please install chrome to use the SpotifyPlayback SDK: https://www.google.com/chrome/";
 
-        this.browser = await puppeteer.launch({ executablePath, headless: false });
+        console.log(executablePath);
+        this.browser = await launch({
+            executablePath,
+            headless: true,
+            channel: 'chrome',
+            ignoreDefaultArgs: ['--disable-component-update'],
+            defaultViewport: null,
+            defaultArgs: ['--window-size=400,300']
+        });
         return this;
     }
 
@@ -133,7 +141,8 @@ class SpotifyPlayer extends EventEmitter {
     }
 
     async getAudio() {
-        return this.page.getStream({ audio: true, video: false, frameSize: 20, mimeType: "audio/webm" });
+        console.log("getstr")
+        return getStream(this.page, { audio: true, video: false, frameSize: 20, mimeType: "audio/webm" });
     }
 
     async connect(): Promise<boolean> {

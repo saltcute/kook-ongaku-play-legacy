@@ -16,52 +16,28 @@ var deviceId: string;
 
 export const card_error = (message: string) => {
     return new Card()
-        .setSize('lg')
-        .setTheme('info')
+        .setSize(Card.Size.LARGE)
+        .setTheme(Card.Theme.INFO)
         .addTitle('Error')
         .addDivider()
         .addText(message)
-        .addModule({
-            "type": "context",
-            "elements": [
-                {
-                    "type": "plain-text",
-                    "content": "You may notice a latency of up to 10 seconds of every action"
-                }
-            ]
-        })
+        .addContext("You may notice a latency of up to 10 seconds of every action")
 }
 export const card_success = (message: string) => {
     return new Card()
-        .setSize('lg')
-        .setTheme('info')
+        .setSize(Card.Size.LARGE)
+        .setTheme(Card.Theme.INFO)
         .addTitle('Success')
         .addDivider()
         .addText(message)
-        .addModule({
-            "type": "context",
-            "elements": [
-                {
-                    "type": "plain-text",
-                    "content": "You may notice a latency of up to 10 seconds for every action"
-                }
-            ]
-        });
+        .addContext("You may notice a latency of up to 10 seconds for every action");
 }
 
 export const card_queue = (current: { name: string, artists: string[], progress: number, duration: number }, next: { name: string, artists: string[] }[]) => {
     let ret = new Card()
         .addTitle("Now Playing:")
         .addText(current.name)
-        .addModule({
-            "type": "context",
-            "elements": [
-                {
-                    "type": "plain-text",
-                    "content": current.artists.join(', ')
-                }
-            ]
-        })
+        .addContext(current.artists.join(', '))
         .addText((() => {
             const precentage = (Math.trunc(current.progress / current.duration * 20));
             const progressS = Math.trunc(current.progress / 1000);
@@ -72,15 +48,7 @@ export const card_queue = (current: { name: string, artists: string[], progress:
         .addText("**Next Up:**");
     for (let meta of next) {
         ret.addText(meta.name)
-            .addModule({
-                "type": "context",
-                "elements": [
-                    {
-                        "type": "plain-text",
-                        "content": meta.artists.join(', ')
-                    }
-                ]
-            })
+            .addContext(meta.artists.join(', '))
     }
     return ret;
 }
@@ -184,7 +152,7 @@ export async function getJoinedChannel(guildId: string, authorId: string) {
         }
         if (joinedChannel) break;
     }
-    return joinedChannel;
+    return joinedChannel?.id;
 }
 
 export async function addToQueue(session: BaseSession, song: string) {
@@ -196,7 +164,7 @@ export async function addToQueue(session: BaseSession, song: string) {
             // return session.reply(card_error("Send `.play spotify start` first"));
             const res = await getJoinedChannel(session.guildId, session.authorId);
             if (!res) return session.reply(card_error("You are not in a voice channel"))
-            await streamSpotifyToChannel(res.id);
+            await streamSpotifyToChannel(res);
         }
         await axios.post(
             `https://api.spotify.com/v1/me/player/queue?device_id=${deviceId}&uri=${song}`,
@@ -269,6 +237,9 @@ export async function streamSpotifyToChannel(channelId: string): Promise<void> {
     }
     if (!stream) {
         stream = await player.getAudio();
+        stream.on('data', (chunk) => {
+            console.log(chunk);
+        })
     }
     if (voice && voice.isStreaming) {
         await voice.disconnectWebSocket();
